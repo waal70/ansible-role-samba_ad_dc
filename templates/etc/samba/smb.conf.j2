@@ -10,7 +10,8 @@
         bind interfaces only = yes
         interfaces = lo {{ ansible_default_ipv4.interface }}
         ldap server require strong auth = no
-
+        disable netbios = yes
+        
 [sysvol]
         path = /var/lib/samba/sysvol
         read only = No
