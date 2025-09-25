@@ -7,6 +7,27 @@
 # Inspired from http://xmeblog.blogspot.com/2013/06/ansible-dynamicaly-update-etchosts.html
 
 # Always run shared tasks:
+- name: Assert this host must have a smb_role
+  ansible.builtin.assert:
+    that: 
+      - "'samba_ad_dc_servers' in group_names"
+      - hostvars[inventory_hostname]['smb_role'] is defined
+    fail_msg: "this host has no smb_role"
+    success_msg: "pre-requisites met"
+
+- name: Set this host's smb_role into a fact
+  ansible.builtin.set_fact:
+    smb_role: "{{ hostvars[inventory_hostname]['smb_role'] }}"
+
+- name: Print this host's smb_role
+  ansible.builtin.debug:
+    msg: 
+      - "This host is: {{ smb_role }}"
+
+- name: Include vaulted password file
+  ansible.builtin.include_vars:
+    file: ../home/ansible-vault/samba-ad-dc-vars.yml
+
 - name: Always import shared tasks
   ansible.builtin.import_tasks: debian-bookworm-shared.yml
 
@@ -26,3 +47,5 @@
 
 - name: Import tasks to set sysvol sync
   ansible.builtin.import_tasks: sysvol-sync.yml
+  when:
+    - 

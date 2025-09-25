@@ -24,7 +24,10 @@
 #   Override variable(s) by setting them in ./vars/main.yml
 #
 # yamllint disable rule:colons
-smb_role: additional
+# Please define your smb_role in the inventory
+# valid are: primary, additional
+smb_role: None
+###
 smb_workgroup: TEST
 smb_realm: TEST.ANDRECATHERINE.NET
 smb_dns_servers: "{{ ansible_default_ipv4.address }}"
