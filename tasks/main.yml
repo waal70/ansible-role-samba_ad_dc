@@ -9,7 +9,7 @@
 # Always run shared tasks:
 - name: Assert this host must have a smb_role
   ansible.builtin.assert:
-    that: 
+    that:
       - "'samba_ad_dc_servers' in group_names"
       - hostvars[inventory_hostname]['smb_role'] is defined
     fail_msg: "this host has no smb_role"
@@ -21,7 +21,7 @@
 
 - name: Print this host's smb_role
   ansible.builtin.debug:
-    msg: 
+    msg:
       - "This host is: {{ smb_role }}"
 
 - name: Include vaulted password file
@@ -45,7 +45,7 @@
     - ansible_distribution_release == "bookworm"
     - ansible_architecture == "x86_64"
 
-- name: Import tasks to set sysvol sync
-  ansible.builtin.import_tasks: sysvol-sync.yml
-  when:
-    - 
+# - name: Import tasks to set sysvol sync
+#   ansible.builtin.import_tasks: sysvol-sync.yml
+#   when:
+#     -
