@@ -24,9 +24,18 @@
     msg:
       - "This host is: {{ smb_role }}"
 
+# This include_vars allows you to keep your vaulted variables outside of your main repo
+# It assumes the PRIVATE_REPO environment variable is set to the path of your private repo
+# On home-infra, this is done by firstrun.sh.
+# However, this role will not break if you do not have these
 - name: Include vaulted password file
   ansible.builtin.include_vars:
-    file: ../home/ansible-vault/samba-ad-dc-vars.yml
+    file: "{{ item }}"
+  with_first_found:
+    - files:
+        - "{{ lookup('env', 'PRIVATE_REPO') | default('~') }}/ansible-vault/{{ ansible_role_name }}-vars.yml"
+      skip: true
+
 
 - name: Always import shared tasks
   ansible.builtin.import_tasks: debian-bookworm-shared.yml
