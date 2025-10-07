@@ -23,7 +23,8 @@
     that:
       - "'activedirectory' in group_names"
       - hostvars[inventory_hostname]['ad_role'] is defined
-    fail_msg: "Inventory error: this host must be in the activedirectory group and have a ad_role defined"
+      - hostvars[inventory_hostname]['dns_forwarder'] is defined
+    fail_msg: "Inventory error: this host must be in the activedirectory group and have a ad_role and forwarder defined"
     success_msg: "Required inventory settings found"
 
 - name: Set this host's ad_role into a fact
@@ -52,7 +53,25 @@
   when:
     - ad_role != "primary"
 
-- name: Import tasks to set sysvol sync
+- name: Checking whether all configured Active Directories are up and running
+  block:
+    - name: "Check whether there is samba-ad-dc configured for {{ inventory_hostname }}"
+      ansible.builtin.command: samba-tool domain info 127.0.0.1
+      register: checkall_result
+      changed_when: false
+      delegate_to: "{{ item }}"
+      with_items: "{{ groups['activedirectory'] }}"
+
+    - name: Set switch to confirm all AD's mentioned in the inventory are alive
+      ansible.builtin.set_fact:
+        all_ad_up: true
+  rescue:
+    - name: Set switch in case one of the inventory AD's are not found to be alive
+      ansible.builtin.set_fact:
+        all_ad_up: false
+
+- name: Import tasks to set sysvol sync, but only when the additional has been provisioned
   ansible.builtin.import_tasks: sysvol-sync.yml
   when:
     - groups['activedirectory'] | length > 1
+    - all_ad_up | bool

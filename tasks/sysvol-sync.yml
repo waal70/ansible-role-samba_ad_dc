@@ -75,26 +75,26 @@
   ansible.builtin.command: >
     rsync --dry-run -XAavz --delete-after
      --password-file=/var/lib/samba/rsync-sysvol.secret
-      rsync://sysvol-replication@{{ hostvars[groups['samba_primary'][0]]['ansible_default_ipv4']['address'] }}/SysVol/
+      rsync://sysvol-replication@{{ hostvars[groups['activedirectory'][0]]['ansible_default_ipv4']['address'] }}/SysVol/
        /var/lib/samba/sysvol/
   register: rsync_dryrun
   when: ad_role != "primary"
   changed_when: false
 
-- name: Debug the dryrun
-  ansible.builtin.debug:
-    var: rsync_dryrun
-  when: ad_role != "additional"
+# - name: Debug the dryrun
+#   ansible.builtin.debug:
+#     var: rsync_dryrun
+#   when: ad_role != "primary"
 
 - name: Perform the rsync if dryrun was succesfull # noqa: command-instead-of-module
   ansible.builtin.command: >
     rsync -XAavz --delete-after
      --password-file=/var/lib/samba/rsync-sysvol.secret
-      rsync://sysvol-replication@{{ hostvars[groups['samba_primary'][0]]['ansible_default_ipv4']['address'] }}/SysVol/
+      rsync://sysvol-replication@{{ hostvars[groups['activedirectory'][0]]['ansible_default_ipv4']['address'] }}/SysVol/
        /var/lib/samba/sysvol/
   when:
-    - ad_role != "additional"
-    - not rsync_dryrun.failed
+    - ad_role != "primary"
+    - not rsync_dryrun.failed | default(false)
   changed_when: true
 
 - name: Set the rsync as a cron-job on the additional servers. Run at 5:30 AM and 17:30
@@ -102,12 +102,12 @@
     name: SysVol sync
     minute: "30"
     hour: 5,17
-    job: rsync -XAavz --delete-after --password-file=/var/lib/samba/rsync-sysvol.secret rsync://sysvol-replication@{{ hostvars[groups['samba_primary'][0]]['ansible_default_ipv4']['address'] }}/SysVol/ /var/lib/samba/sysvol/ # noqa: yaml[line-length]
+    job: rsync -XAavz --delete-after --password-file=/var/lib/samba/rsync-sysvol.secret rsync://sysvol-replication@{{ hostvars[groups['activedirectory'][0]]['ansible_default_ipv4']['address'] }}/SysVol/ /var/lib/samba/sysvol/ # noqa: yaml[line-length]
   when:
-    - ad_role != "additional"
-    - not rsync_dryrun.failed
+    - ad_role != "primary"
+    - not rsync_dryrun.failed | default(false)
 
 - name: Reset the ACL on the additional servers.
   ansible.builtin.command: samba-tool ntacl sysvolreset
-  when: ad_role != "additional"
+  when: ad_role != "primary"
   changed_when: true

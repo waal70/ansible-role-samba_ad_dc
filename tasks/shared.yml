@@ -52,7 +52,14 @@
     - python3-setproctitle
     - smbclient
     - winbind
-    - ntp
+    - samba
+    - ntpsec
+
+- name: Preseed PAM Configuration
+  ansible.builtin.raw: echo libpam-runtime  libpam-runtime/profiles multiselect     unix, winbind, systemd, mkhomedir | sudo debconf-set-selections
+  when:
+   - smb_dc_result.failed
+  changed_when: true
 
 - name: Remove (old) Samba configuration, but only if this is not already a samba domain
   ansible.builtin.file:

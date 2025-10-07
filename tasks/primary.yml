@@ -7,7 +7,7 @@
 #
 # Description: Install samba and provision a domain. This file for primary domain controllers
 
-- name: Transfer resolv.conf.j2 to /etc/resolv.conf
+- name: "Transfer resolv.conf.j2 to /etc/resolv.conf for {{ ad_role }}"
   ansible.builtin.template:
     src: etc/resolv.conf.j2
     dest: /etc/resolv.conf
@@ -25,7 +25,7 @@
   notify: Restart Samba
   changed_when: true
 
-- name: Disable Services
+- name: "Disable Services for {{ ad_role }}"
   ansible.builtin.systemd:
     enabled: false
     state: stopped
@@ -38,7 +38,7 @@
   when:
     - smb_dc_result.failed
 
-- name: Back-up the initial /etc/krb5.conf to /etc/krb5.conf.initial
+- name: "Back-up the initial /etc/krb5.conf to /etc/krb5.conf.initial for {{ ad_role }}"
   ansible.builtin.copy:
     src: /etc/krb5.conf
     dest: /etc/krb5.conf.initial
@@ -48,7 +48,7 @@
   when:
     - smb_dc_result.failed
 
-- name: Copy /var/lib/samba/private/krb5.conf to /etc/krb5.conf
+- name: "Copy /var/lib/samba/private/krb5.conf to /etc/krb5.conf for {{ ad_role }}"
   ansible.builtin.copy:
     src: /var/lib/samba/private/krb5.conf
     remote_src: true
@@ -56,7 +56,7 @@
     mode: "0644"
     force: true
 
-- name: Always Enable Services
+- name: "Always Enable Services for {{ ad_role }}"
   ansible.builtin.systemd_service:
     enabled: true
     masked: false
@@ -67,10 +67,10 @@
     - nmbd.service
     - winbind.service
 
-- name: Always restart samba-ad-dc.service
+- name: "Always restart samba-ad-dc.service for {{ ad_role }}"
   ansible.builtin.systemd_service:
     name: samba-ad-dc.service
     state: reloaded
 
-- name: Ease up on the password requirements
+- name: "Ease up on the password requirements for {{ ad_role }}"
   ansible.builtin.import_tasks: samba-passreqs.yml
