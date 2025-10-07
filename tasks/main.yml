@@ -70,8 +70,31 @@
       ansible.builtin.set_fact:
         all_ad_up: false
 
+- name: Create the rsync-secrets file and give proper permissions
+  ansible.builtin.template:
+    src: var/lib/samba/private/rsyncd.secret.j2
+    dest: /var/lib/samba/private/rsyncd.secret
+    owner: root
+    group: root
+    mode: "0600"
+  register: result_primary
+  when: ad_role == "primary"
+
+- name: Check whether crontab was already set
+  ansible.builtin.lineinfile:
+    dest: /var/spool/cron/crontabs/root
+    line: "#Ansible: SysVol sync"
+  check_mode: true
+  register: result_secondary
+  when: ad_role != "primary"
+  ignore_errors: true
+
+# Skipping SysVol sync setup as it is time-consuming. Should it not be setup (correctly),
+# you can force the run of this task by clearing root's crontab on the additional (crontab -r)
+# or by setting force_sysvol_rsync to true
 - name: Import tasks to set sysvol sync, but only when the additional has been provisioned
   ansible.builtin.import_tasks: sysvol-sync.yml
   when:
     - groups['activedirectory'] | length > 1
     - all_ad_up | bool
+    - (result_primary.changed | default(false)) or (result_secondary.failed | default (false)) or (force_sysvol_rsync | default(false))

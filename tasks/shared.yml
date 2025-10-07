@@ -37,14 +37,10 @@
 
 - name: Install dependencies
   ansible.builtin.apt:
-   name: "{{ packages }}"
-   update_cache: true
-   state: present
-  vars:
-   packages:
+   name:
     - acl
     - attr
-    - dnsutils
+    # - dnsutils only for BIND9
     - libpam-winbind
     - libnss-winbind
     - krb5-config
@@ -54,6 +50,8 @@
     - winbind
     - samba
     - ntpsec
+   cache_valid_time: 3600
+   state: present
 
 - name: Preseed PAM Configuration
   ansible.builtin.raw: echo libpam-runtime  libpam-runtime/profiles multiselect     unix, winbind, systemd, mkhomedir | sudo debconf-set-selections

@@ -28,6 +28,7 @@
 # valid choice is: primary. Any other value will be considered additional (as is the default)
 # Will be used to set server role in smb.conf
 ad_role: additional
+force_sysvol_rsync: false
 ###
 ### These defaults are here for reference only, please override them in your vars/main.yml
 ### or in your local secrets vault file, as is included as first task in tasks/main.yml
