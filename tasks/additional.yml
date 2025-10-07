@@ -7,19 +7,19 @@
 #
 # Description: Install samba and *join* a domain. This file for non-primary domain controllers
 
-- name: "Transfer resolv.conf.j2 to /etc/resolv.conf for {{ ad_role }}"
+- name: "Transfer resolv.conf.j2 to /etc/resolv.conf"
   ansible.builtin.template:
     src: etc/resolv.conf.j2
     dest: /etc/resolv.conf
     mode: "0644"
 
-- name: "Transfer krb5.conf.j2 to /etc/krb5.conf for {{ ad_role }}"
+- name: "Transfer krb5.conf.j2 to /etc/krb5.conf"
   ansible.builtin.template:
     src: etc/krb5.conf.j2
     dest: /etc/krb5.conf
     mode: "0644"
 
-- name: "Now procure a valid krb5 ticket for the domain administrator for {{ ad_role }}"
+- name: "Now procure a valid krb5 ticket for the domain administrator"
   ansible.builtin.command: >
     echo {{ smb_password }} | kinit {{ smb_username }}
   changed_when: false
@@ -36,7 +36,7 @@
   notify: Restart Samba
   changed_when: true
 
-- name: "Always stop services before for {{ ad_role }}"
+- name: "Always stop services before"
   ansible.builtin.systemd_service:
     enabled: false
     state: stopped
@@ -48,7 +48,7 @@
     - winbind.service
   when: smb_dc_result.failed
 
-- name: "Always Enable Services for {{ ad_role }}"
+- name: "Always Enable Services"
   ansible.builtin.systemd_service:
     enabled: true
     masked: false
@@ -59,7 +59,7 @@
     - nmbd.service
     - winbind.service
 
-- name: "Always restart samba-ad-dc.service and winbind for {{ ad_role }}"
+- name: "Always restart samba-ad-dc.service and winbind"
   ansible.builtin.systemd_service:
     name: "{{ item }}"
     state: restarted
