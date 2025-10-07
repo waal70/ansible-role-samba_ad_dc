@@ -1,5 +1,7 @@
 domain {{ smb_realm }}
 search {{ smb_realm }}
-nameserver {{ smb_primary_dns }}
-nameserver {{ smb_secondary_dns }}
+{% for dns_server in dns_list %}
+nameserver {{ dns_server }}
+{% endfor %}
+
 

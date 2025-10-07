@@ -7,5 +7,7 @@
     - samba-tool domain passwordsettings set --history-length=0
     - samba-tool domain passwordsettings set --min-pwd-age=0
     - samba-tool domain passwordsettings set --max-pwd-age=0
-  when: smb_role == "primary"
+  when:
+    - ad_role == "primary"
+    - smb_dc_result.failed
   changed_when: true

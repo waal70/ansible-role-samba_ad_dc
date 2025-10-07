@@ -1,0 +1,97 @@
+---
+# These tasks follow https://wiki.samba.org/index.php/Setting_up_Samba_as_an_Active_Directory_Domain_Controller
+
+- name: Block to disable services
+  block:
+   - name: Disable resolveconf
+     ansible.builtin.systemd_service:
+      name: resolvconf.service
+      enabled: false
+      state: stopped
+  rescue:
+   - name: Tell the user
+     ansible.builtin.debug:
+      msg: "Service not installed, so not stopping"
+
+- name: Build a correct hosts file for SAMBA DC's # noqa: ignore-errors
+  ansible.builtin.lineinfile:
+   path: /etc/hosts
+   regexp: .*{{ item }}$
+   line: "{{ hostvars[item].ansible_default_ipv4.address }} {{ item }} {{ item }}.{{ smb_realm }}"
+   state: present
+  when: hostvars[item].ansible_default_ipv4.address is defined
+  with_items: "{{ groups['activedirectory'] }}"
+  ignore_errors: true
+
+- name: "Check whether there is already samba-ad-dc configured for {{ inventory_hostname }}"
+  ansible.builtin.command: samba-tool domain info 127.0.0.1
+  register: smb_dc_result
+  ignore_errors: true
+  changed_when: false
+
+# - name: Preseed PAM Configuration
+#   ansible.builtin.raw: echo libpam-runtime  libpam-runtime/profiles multiselect     unix, winbind, systemd, mkhomedir | sudo debconf-set-selections
+#   when:
+#     - smb_dc_result.failed
+#   changed_when: true
+
+- name: Install dependencies
+  ansible.builtin.apt:
+   name: "{{ packages }}"
+   update_cache: true
+   state: present
+  vars:
+   packages:
+    - acl
+    - attr
+    - dnsutils
+    - libpam-winbind
+    - libnss-winbind
+    - krb5-config
+    - krb5-user
+    - python3-setproctitle
+    - smbclient
+    - winbind
+    - ntp
+
+- name: Remove (old) Samba configuration, but only if this is not already a samba domain
+  ansible.builtin.file:
+   path: /etc/samba/smb.conf
+   state: absent
+  when:
+   - smb_dc_result.failed
+
+- name: Transfer smb.conf.j2 to /etc/samba/smb.conf
+  ansible.builtin.template:
+   src: etc/samba/smb.conf.j2
+   dest: /etc/samba/smb.conf
+   mode: "0644"
+
+- name: Get a list of all IP addresses of all DNS servers from the inventory
+  ansible.builtin.set_fact:
+   dns_list: "{{ dns_list + [hostvars[item].ansible_host] }}"
+  with_items:
+   - "{{ groups['dns'] }}"
+  vars:
+   dns_list: []
+
+- name: Back-up the initial /etc/krb5.conf to /etc/krb5.conf.initial # noqa: ignore-errors
+  ansible.builtin.copy:
+   src: /etc/krb5.conf
+   dest: /etc/krb5.conf.initial
+   remote_src: true
+   force: false
+   mode: "0644"
+  ignore_errors: true
+
+- name: Edit fstab
+  ansible.builtin.replace:
+   path: /etc/fstab
+   regexp: errors=remount-ro 0
+   replace: user_xattr,acl,barrier=1,errors=remount-ro,relatime 0
+   backup: true
+
+- name: Check whether the AD database exists
+  ansible.builtin.stat:
+   path: /var/lib/samba/private/sam.ldb
+  register: ad_database
