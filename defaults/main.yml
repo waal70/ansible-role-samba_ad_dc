@@ -29,6 +29,12 @@
 # Will be used to set server role in smb.conf
 ad_role: additional
 force_sysvol_rsync: false
+
+# The built-in DNS server of samba will be the only DNS server on this machine
+# Set this to false if you know you will be running another DNS server (like pihole)
+smb_is_only_dns: false
+# If not the only DNS, on which port should samba listen
+smb_dns_port: 5353
 ###
 ### These defaults are here for reference only, please override them in your vars/main.yml
 ### or in your local secrets vault file, as is included as first task in tasks/main.yml
