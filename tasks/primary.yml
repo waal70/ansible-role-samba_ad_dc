@@ -7,12 +7,6 @@
 #
 # Description: Install samba and provision a domain. This file for primary domain controllers
 
-- name: "Transfer resolv.conf.j2 to /etc/resolv.conf"
-  ansible.builtin.template:
-    src: etc/resolv.conf.j2
-    dest: /etc/resolv.conf
-    mode: "0644"
-
 - name: Set {{ ansible_hostname }} as primary domain controller because of ad_role={{ ad_role }} # noqa: name[template]
   ansible.builtin.command: >
     samba-tool domain provision --server-role=dc --use-rfc2307 --dns-backend=SAMBA_INTERNAL

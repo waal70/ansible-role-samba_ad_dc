@@ -7,12 +7,6 @@
 #
 # Description: Install samba and *join* a domain. This file for non-primary domain controllers
 
-- name: "Transfer resolv.conf.j2 to /etc/resolv.conf"
-  ansible.builtin.template:
-    src: etc/resolv.conf.j2
-    dest: /etc/resolv.conf
-    mode: "0644"
-
 - name: "Transfer krb5.conf.j2 to /etc/krb5.conf"
   ansible.builtin.template:
     src: etc/krb5.conf.j2
