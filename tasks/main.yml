@@ -98,3 +98,12 @@
     - groups['activedirectory'] | length > 1
     - all_ad_up | bool
     - (result_primary.changed | default(false)) or (result_secondary.failed | default (false)) or (force_sysvol_rsync | default(false))
+
+# Sometimes, after reboot, Samba does not come up correctly. Plan a cronjob to restart at reboot:
+- name: Set cronjob to restart samba services
+  ansible.builtin.cron:
+    name: "Bump samba-ad-dc at boot"
+    special_time: reboot
+    job: "sleep 15 && systemctl restart samba-ad-dc"
+    user: root
+    state: present
