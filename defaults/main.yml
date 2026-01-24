@@ -42,7 +42,7 @@ smb_workgroup: WORKGROUP
 smb_realm: WORKGROUP.LOCAL
 smb_dns_servers: "{{ ansible_default_ipv4.address }}"
 ### These are the dns forwarders that will be used by samba to forward unresolvable queries
-fallback_dns: 8.8.8.8 8.8.4.4
+fallback_dns: ['8.8.8.8', '8.8.4.4']
 smb_username: Administrator
 smb_password: "{{ vault_smb_password }}"
 smb_site: Sitename

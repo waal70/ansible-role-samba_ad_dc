@@ -74,9 +74,9 @@
 
 - name: Get a list of all IP addresses of all DNS servers from the inventory
   ansible.builtin.set_fact:
-   dns_list: "{{ dns_list + [hostvars[item].ansible_host] }}"
+   dns_list: "{{ dns_list + [hostvars[item].ansible_host | default(item)] }}"
   with_items:
-   - "{{ groups['dns'] }}"
+   - "{{ groups['dns'] | default(fallback_dns) }}"
   vars:
    dns_list: []
 
@@ -100,22 +100,3 @@
   ansible.builtin.stat:
    path: /var/lib/samba/private/sam.ldb
   register: ad_database
-
-- name: "Check resolv.conf for immutable attribute"
-  ansible.builtin.stat:
-   path: /etc/resolv.conf
-   get_attributes: true
-  register: resolv_conf_stat
-
-- name: "Remove immutable attribute from /etc/resolv.conf"
-  ansible.builtin.file:
-   path: /etc/resolv.conf
-   attributes: '-i'
-  when: "'immutable' in resolv_conf_stat.stat.attributes"
-
-- name: "Transfer resolv.conf.j2 to /etc/resolv.conf and make immutable"
-  ansible.builtin.template:
-   src: etc/resolv.conf.j2
-   dest: /etc/resolv.conf
-   mode: "0644"
-   attributes: "+i"

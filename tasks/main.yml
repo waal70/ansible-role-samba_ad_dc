@@ -33,7 +33,7 @@
 
 - name: Set this host's dns_forwarder into a fact
   ansible.builtin.set_fact:
-    smb_dns_forwarder: "{{ hostvars[inventory_hostname]['dns_forwarder'] | default(fallback_dns) }}"
+    smb_dns_forwarder: "{{ hostvars[inventory_hostname]['dns_forwarder'] | default(fallback_dns | flatten) }}"
 
 - name: "Print the Active Directory role for {{ inventory_hostname }}"
   ansible.builtin.debug:
@@ -52,6 +52,27 @@
   ansible.builtin.import_tasks: additional.yml
   when:
     - ad_role != "primary"
+
+# Please note that the order is important. Only change resolv.conf after Samba is active,
+# or you will run into name resolution troubles
+- name: "Check resolv.conf for immutable attribute"
+  ansible.builtin.stat:
+    path: /etc/resolv.conf
+    get_attributes: true
+  register: resolv_conf_stat
+
+- name: "Remove immutable attribute from /etc/resolv.conf"
+  ansible.builtin.file:
+    path: /etc/resolv.conf
+    attributes: '-i'
+  when: "'immutable' in resolv_conf_stat.stat.attributes"
+
+- name: "Transfer resolv.conf.j2 to /etc/resolv.conf and make immutable"
+  ansible.builtin.template:
+    src: etc/resolv.conf.j2
+    dest: /etc/resolv.conf
+    mode: "0644"
+    attributes: "+i"
 
 - name: Checking whether all configured Active Directories are up and running
   block:
