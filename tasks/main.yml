@@ -15,7 +15,7 @@
     file: "{{ item }}"
   with_first_found:
     - files:
-        - "{{ lookup('env', 'PRIVATE_REPO') | default('~') }}/ansible-vault/{{ ansible_role_name }}-vars.yml"
+        - "{{ lookup('env', 'PRIVATE_REPO') | default('~') }}/{{ ansible_vault }}/{{ ansible_role_name }}-vars.yml"
       skip: true
 
 - name: Assert this host must have a ad_role defined and be in the activedirectory group
