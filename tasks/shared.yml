@@ -16,7 +16,7 @@
 - name: Build a correct hosts file for SAMBA DC's # noqa: ignore-errors
   ansible.builtin.lineinfile:
    path: /etc/hosts
-   regexp: .*{{ item }}$
+   regexp: "^{{ hostvars[item].ansible_default_ipv4.address }}.*$"
    line: "{{ hostvars[item].ansible_default_ipv4.address }} {{ item }} {{ item }}.{{ smb_realm }}"
    state: present
   when: hostvars[item].ansible_default_ipv4.address is defined
@@ -50,6 +50,7 @@
     - winbind
     - samba
     - ntpsec
+    - net-tools
    cache_valid_time: 3600
    state: present
 
@@ -65,6 +66,19 @@
    state: absent
   when:
    - smb_dc_result.failed
+
+- name: Check whether pi-hole is already installed, by checking presence of gravity database
+  ansible.builtin.stat:
+   path: /etc/pihole/gravity.db
+  register: pihole_db
+
+- name: Set a flag that tells us whether pi-hole was already present
+  ansible.builtin.set_fact:
+   pihole_present: "{{ pihole_db.stat.exists | default(false) }}"
+
+- name: The existence of pihole influences the variables in smb.conf
+  ansible.builtin.set_fact:
+   smb_is_only_dns: "{{ not pihole_present }}"
 
 - name: Transfer smb.conf.j2 to /etc/samba/smb.conf
   ansible.builtin.template:
