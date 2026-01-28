@@ -16,10 +16,10 @@
 - name: Build a correct hosts file for SAMBA DC's # noqa: ignore-errors
   ansible.builtin.lineinfile:
    path: /etc/hosts
-   regexp: "^{{ hostvars[item].ansible_default_ipv4.address }}.*$"
-   line: "{{ hostvars[item].ansible_default_ipv4.address }} {{ item }} {{ item }}.{{ smb_realm }}"
+   regexp: "^{{ hostvars[item].ansible_facts['default_ipv4'].address }}.*$"
+   line: "{{ hostvars[item].ansible_facts['default_ipv4'].address }} {{ item }} {{ item }}.{{ smb_realm }}"
    state: present
-  when: hostvars[item].ansible_default_ipv4.address is defined
+  when: hostvars[item].ansible_facts['default_ipv4'].address is defined
   with_items: "{{ groups['activedirectory'] }}"
   ignore_errors: true
 

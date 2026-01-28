@@ -53,7 +53,7 @@
     mode: "0600"
   when: ad_role == "primary"
 
-- name: Enable rsync services for {{ ansible_hostname }}
+- name: Enable rsync services for {{ ansible_facts['hostname'] }}
   ansible.builtin.systemd_service:
     enabled: true
     masked: false
@@ -61,7 +61,7 @@
     name: rsync.service
   when: ad_role == "primary"
 
-- name: Create the password file on additional {{ ansible_hostname }}
+- name: Create the password file on additional {{ ansible_facts['hostname'] }}
   ansible.builtin.copy:
     content: "{{ smb_rsyncd_pass }}"
     dest: /var/lib/samba/rsync-sysvol.secret
@@ -75,7 +75,7 @@
   ansible.builtin.command: >
     rsync --dry-run -XAavz --delete-after
      --password-file=/var/lib/samba/rsync-sysvol.secret
-      rsync://sysvol-replication@{{ hostvars[groups['activedirectory'][0]]['ansible_default_ipv4']['address'] }}/SysVol/
+      rsync://sysvol-replication@{{ hostvars[groups['activedirectory'][0]]['ansible_facts['default_ipv4']']['address'] }}/SysVol/
        /var/lib/samba/sysvol/
   register: rsync_dryrun
   when: ad_role != "primary"
@@ -90,7 +90,7 @@
   ansible.builtin.command: >
     rsync -XAavz --delete-after
      --password-file=/var/lib/samba/rsync-sysvol.secret
-      rsync://sysvol-replication@{{ hostvars[groups['activedirectory'][0]]['ansible_default_ipv4']['address'] }}/SysVol/
+      rsync://sysvol-replication@{{ hostvars[groups['activedirectory'][0]]['ansible_facts['default_ipv4']']['address'] }}/SysVol/
        /var/lib/samba/sysvol/
   when:
     - ad_role != "primary"
@@ -102,7 +102,7 @@
     name: SysVol sync
     minute: "30"
     hour: 5,17
-    job: rsync -XAavz --delete-after --password-file=/var/lib/samba/rsync-sysvol.secret rsync://sysvol-replication@{{ hostvars[groups['activedirectory'][0]]['ansible_default_ipv4']['address'] }}/SysVol/ /var/lib/samba/sysvol/ # noqa: yaml[line-length]
+    job: rsync -XAavz --delete-after --password-file=/var/lib/samba/rsync-sysvol.secret rsync://sysvol-replication@{{ hostvars[groups['activedirectory'][0]]['ansible_facts['default_ipv4']']['address'] }}/SysVol/ /var/lib/samba/sysvol/ # noqa: yaml[line-length]
   when:
     - ad_role != "primary"
     - not rsync_dryrun.failed | default(false)

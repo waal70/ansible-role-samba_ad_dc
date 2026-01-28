@@ -1,6 +1,6 @@
 # Global parameters
 [global]
-        netbios name = {{ ansible_hostname }}
+        netbios name = {{ ansible_facts['hostname'] }}
         realm = {{ smb_realm }}
         server role = active directory domain controller
         ntlm auth = mschapv2-and-ntlmv2-only
@@ -13,7 +13,7 @@ dns forwarder = {{ smb_dns_forwarder }}
         dns port = {{ smb_dns_port }}
         {% endif -%}
         bind interfaces only = yes
-        interfaces = lo {{ ansible_default_ipv4.interface }}
+        interfaces = lo {{ ansible_facts['default_ipv4'].interface }}
         ldap server require strong auth = no
         disable netbios = yes
         

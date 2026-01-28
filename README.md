@@ -18,7 +18,7 @@ Description: Role to configure samba-based active directory (primary and seconda
 | [force_sysvol_rsync](defaults/main.yml#L31) | bool | `False` |
 | [smb_workgroup](defaults/main.yml#L35) | str | `WORKGROUP` |
 | [smb_realm](defaults/main.yml#L36) | str | `WORKGROUP.LOCAL` |
-| [smb_dns_servers](defaults/main.yml#L37) | str | `{{ ansible_default_ipv4.address }}` |
+| [smb_dns_servers](defaults/main.yml#L37) | str | `{{ ansible_facts['default_ipv4'].address }}` |
 | [fallback_dns](defaults/main.yml#L39) | str | `8.8.8.8 8.8.4.4` |
 | [smb_username](defaults/main.yml#L40) | str | `Administrator` |
 | [smb_password](defaults/main.yml#L41) | str | `{{ vault_smb_password }}` |
@@ -35,8 +35,8 @@ Description: Role to configure samba-based active directory (primary and seconda
 
 | Var | Type | Value |
 | -------------- | -------------- | ------------- |
-| [vault_smb_password](vars/main.yml#L5) | str | `ENCRYPTED_WITH_ANSIBLE_VAULT` |
-| [vault_smb_rsync_pass](vars/main.yml#L13) | str | `ENCRYPTED_WITH_ANSIBLE_VAULT` |
+| [vault_smb_password](vars/main.yml#L5) | str | `ENCRYPTED_WITHansible_vault` |
+| [vault_smb_rsync_pass](vars/main.yml#L13) | str | `ENCRYPTED_WITHansible_vault` |
 
 ### Tasks
 
@@ -76,7 +76,7 @@ Description: Role to configure samba-based active directory (primary and seconda
 | Name | Module | Has Conditions |
 | ---- | ------ | -------------- |
 | Transfer resolv.conf.j2 to /etc/resolv.conf | ansible.builtin.template | False |
-| Set {{ ansible_hostname }} as primary domain controller because of ad_role={{ ad_role }} | ansible.builtin.command | True |
+| Set {{ ansible_facts['hostname'] }} as primary domain controller because of ad_role={{ ad_role }} | ansible.builtin.command | True |
 | Disable Services | ansible.builtin.systemd_service | True |
 | Back-up the initial /etc/krb5.conf to /etc/krb5.conf.initial | ansible.builtin.copy | True |
 | Copy /var/lib/samba/private/krb5.conf to /etc/krb5.conf | ansible.builtin.copy | False |
@@ -124,8 +124,8 @@ Description: Sets up sysvol sync between the DC's |
 | Copy the idmap database file | ansible.builtin.copy | True |  |
 | Now put in place the config for rsyncd | ansible.builtin.template | True |  |
 | Create the secrets file and give proper permissions | ansible.builtin.template | True |  |
-| Enable rsync services for {{ ansible_hostname }} | ansible.builtin.systemd_service | True |  |
-| Create the password file on additional {{ ansible_hostname }} | ansible.builtin.copy | True |  |
+| Enable rsync services for {{ ansible_facts['hostname'] }} | ansible.builtin.systemd_service | True |  |
+| Create the password file on additional {{ ansible_facts['hostname'] }} | ansible.builtin.copy | True |  |
 | Dry run the rsync | ansible.builtin.command | True |  |
 | Perform the rsync if dryrun was succesfull | ansible.builtin.command | True |  |
 | Set the rsync as a cron-job on the additional servers. Run at 5:30 AM and 17:30 | ansible.builtin.cron | True |  |
@@ -207,8 +207,8 @@ classDef includeVars stroke:#8e44ad,stroke-width:2px;
 classDef rescue stroke:#665352,stroke-width:2px;
 
   Start-->|Task| Transfer_resolv_conf_j2_to__etc_resolv_conf0[transfer resolv conf j2 to  etc resolv conf]:::task
-  Transfer_resolv_conf_j2_to__etc_resolv_conf0-->|Task| Set_ansible_hostname_as_primary_domain_controller_because_of_ad_role_ad_role1[set ansible hostname as primary domain controller<br>because of ad role ad role<br>When: **smb dc result failed and ad role   primary  and<br>not ad database stat exists**]:::task
-  Set_ansible_hostname_as_primary_domain_controller_because_of_ad_role_ad_role1-->|Task| Disable_Services2[disable services<br>When: **smb dc result failed**]:::task
+  Transfer_resolv_conf_j2_to__etc_resolv_conf0-->|Task| Set_ansible_facts['hostname']_as_primary_domain_controller_because_of_ad_role_ad_role1[set ansible hostname as primary domain controller<br>because of ad role ad role<br>When: **smb dc result failed and ad role   primary  and<br>not ad database stat exists**]:::task
+  Set_ansible_facts['hostname']_as_primary_domain_controller_because_of_ad_role_ad_role1-->|Task| Disable_Services2[disable services<br>When: **smb dc result failed**]:::task
   Disable_Services2-->|Task| Back_up_the_initial__etc_krb5_conf_to__etc_krb5_conf_initial3[back up the initial  etc krb5 conf to  etc krb5<br>conf initial<br>When: **smb dc result failed**]:::task
   Back_up_the_initial__etc_krb5_conf_to__etc_krb5_conf_initial3-->|Task| Copy__var_lib_samba_private_krb5_conf_to__etc_krb5_conf4[copy  var lib samba private krb5 conf to  etc krb5<br>conf]:::task
   Copy__var_lib_samba_private_krb5_conf_to__etc_krb5_conf4-->|Task| Always_Enable_Services5[always enable services]:::task
@@ -288,9 +288,9 @@ classDef rescue stroke:#665352,stroke-width:2px;
   Fetch_the_idmap_database_file2-->|Task| Copy_the_idmap_database_file3[copy the idmap database file<br>When: **ad role     primary**]:::task
   Copy_the_idmap_database_file3-->|Task| Now_put_in_place_the_config_for_rsyncd4[now put in place the config for rsyncd<br>When: **ad role     primary**]:::task
   Now_put_in_place_the_config_for_rsyncd4-->|Task| Create_the_secrets_file_and_give_proper_permissions5[create the secrets file and give proper<br>permissions<br>When: **ad role     primary**]:::task
-  Create_the_secrets_file_and_give_proper_permissions5-->|Task| Enable_rsync_services_for_ansible_hostname6[enable rsync services for ansible hostname<br>When: **ad role     primary**]:::task
-  Enable_rsync_services_for_ansible_hostname6-->|Task| Create_the_password_file_on_additional_ansible_hostname7[create the password file on additional ansible<br>hostname<br>When: **ad role     primary**]:::task
-  Create_the_password_file_on_additional_ansible_hostname7-->|Task| Dry_run_the_rsync8[dry run the rsync<br>When: **ad role     primary**]:::task
+  Create_the_secrets_file_and_give_proper_permissions5-->|Task| Enable_rsync_services_for_ansible_facts['hostname']6[enable rsync services for ansible hostname<br>When: **ad role     primary**]:::task
+  Enable_rsync_services_for_ansible_facts['hostname']6-->|Task| Create_the_password_file_on_additional_ansible_facts['hostname']7[create the password file on additional ansible<br>hostname<br>When: **ad role     primary**]:::task
+  Create_the_password_file_on_additional_ansible_facts['hostname']7-->|Task| Dry_run_the_rsync8[dry run the rsync<br>When: **ad role     primary**]:::task
   Dry_run_the_rsync8-->|Task| Perform_the_rsync_if_dryrun_was_succesfull9[perform the rsync if dryrun was succesfull<br>When: **ad role     primary  and not rsync dryrun failed  <br>default false**]:::task
   Perform_the_rsync_if_dryrun_was_succesfull9-->|Task| Set_the_rsync_as_a_cron_job_on_the_additional_servers__Run_at_5_30_AM_and_17_3010[set the rsync as a cron job on the additional<br>servers  run at 5 30 am and 17 30<br>When: **ad role     primary  and not rsync dryrun failed  <br>default false**]:::task
   Set_the_rsync_as_a_cron_job_on_the_additional_servers__Run_at_5_30_AM_and_17_3010-->|Task| Reset_the_ACL_on_the_additional_servers_11[reset the acl on the additional servers <br>When: **ad role     primary**]:::task
