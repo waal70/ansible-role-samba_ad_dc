@@ -74,6 +74,7 @@
     mode: "0644"
     attributes: "+i"
 
+# Group activedirectory is a meta group of activedirectory_primary and activedirectory_additional
 - name: Checking whether all configured Active Directories are up and running
   block:
     - name: "Check whether there is samba-ad-dc configured for {{ inventory_hostname }}"

@@ -30,9 +30,6 @@
 ad_role: additional
 force_sysvol_rsync: false
 
-# The built-in DNS server of samba will be the only DNS server on this machine
-# Set this to false if you know you will be running another DNS server (like pihole)
-smb_is_only_dns: false
 # If not the only DNS, on which port should samba listen
 smb_dns_port: 5353
 ###
@@ -49,12 +46,4 @@ smb_site: Sitename
 # This will be used in case of multiple DC's to sync the sysvol and other stuff
 smb_rsyncd_pass: "{{ vault_smb_password }}"
 
-
-# These are the dns entries that will be used for forwarding unresolvable queries
-# to the outside world. It is recommended to use your router or another local
-# TODO: reflect the current changes in inventory. DNS servers are in group dns
-smb_primary_dns: "{{ hostvars[groups['samba_ad_dc_primary'][0]]['ansible_host'] }}"
-smb_secondary_dns: "{{ hostvars[groups['samba_ad_dc_additional'][0]]['ansible_host'] }}"
-# Use the following line when you have no additional dc's defined
-# smb_secondary_dns: 185.93.175.43
 # yamllint enable rule:colons

@@ -71,26 +71,26 @@
     force: true
   when: ad_role != "primary"
 
+- name: Set the a convenience fact for the target of the rsync command
+  ansible.builtin.set_fact:
+    rsync_target: "{{ hostvars[groups['activedirectory'][0]]['ansible_facts']['default_ipv4']['address'] }}"
+  when: ad_role != "primary"
+
 - name: Dry run the rsync # noqa: command-instead-of-module
   ansible.builtin.command: >
     rsync --dry-run -XAavz --delete-after
      --password-file=/var/lib/samba/rsync-sysvol.secret
-      rsync://sysvol-replication@{{ hostvars[groups['activedirectory'][0]]['ansible_facts['default_ipv4']']['address'] }}/SysVol/
+      rsync://sysvol-replication@{{ rsync_target }}/SysVol/
        /var/lib/samba/sysvol/
   register: rsync_dryrun
   when: ad_role != "primary"
   changed_when: false
 
-# - name: Debug the dryrun
-#   ansible.builtin.debug:
-#     var: rsync_dryrun
-#   when: ad_role != "primary"
-
 - name: Perform the rsync if dryrun was succesfull # noqa: command-instead-of-module
   ansible.builtin.command: >
     rsync -XAavz --delete-after
      --password-file=/var/lib/samba/rsync-sysvol.secret
-      rsync://sysvol-replication@{{ hostvars[groups['activedirectory'][0]]['ansible_facts['default_ipv4']']['address'] }}/SysVol/
+      rsync://sysvol-replication@{{ rsync_target }}/SysVol/
        /var/lib/samba/sysvol/
   when:
     - ad_role != "primary"
@@ -102,7 +102,7 @@
     name: SysVol sync
     minute: "30"
     hour: 5,17
-    job: rsync -XAavz --delete-after --password-file=/var/lib/samba/rsync-sysvol.secret rsync://sysvol-replication@{{ hostvars[groups['activedirectory'][0]]['ansible_facts['default_ipv4']']['address'] }}/SysVol/ /var/lib/samba/sysvol/ # noqa: yaml[line-length]
+    job: rsync -XAavz --delete-after --password-file=/var/lib/samba/rsync-sysvol.secret rsync://sysvol-replication@{{ rsync_target }}/SysVol/ /var/lib/samba/sysvol/ # noqa: yaml[line-length]
   when:
     - ad_role != "primary"
     - not rsync_dryrun.failed | default(false)

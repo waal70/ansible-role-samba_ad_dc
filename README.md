@@ -24,8 +24,6 @@ Description: Role to configure samba-based active directory (primary and seconda
 | [smb_password](defaults/main.yml#L41) | str | `{{ vault_smb_password }}` |
 | [smb_site](defaults/main.yml#L42) | str | `Sitename` |
 | [smb_rsyncd_pass](defaults/main.yml#L44) | str | `{{ vault_smb_password }}` |
-| [smb_primary_dns](defaults/main.yml#L50) | str | `{{ hostvars[groups['samba_ad_dc_primary'][0]]['ansible_host'] }}` |
-| [smb_secondary_dns](defaults/main.yml#L51) | str | `{{ hostvars[groups['samba_ad_dc_additional'][0]]['ansible_host'] }}` |
 
 ### Vars
 
