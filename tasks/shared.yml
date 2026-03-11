@@ -83,7 +83,7 @@
   ansible.builtin.set_fact:
    dns_list: "{{ dns_list + [hostvars[item].ansible_host | default(item)] }}"
   with_items:
-   - "{{ groups['dns'] | default(fallback_dns) }}"
+   - "{{ groups['core'] | default(fallback_dns) }}"
   vars:
    dns_list: []
 
